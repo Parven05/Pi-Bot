@@ -17,10 +17,15 @@ env/
 # secrets
 .env
 .envrc
+.env.wrangler
 
 # devenv
 .devenv/
 .direnv/
+
+# Node / Workers
+node_modules/
+.wrangler/
 
 # editors
 .vscode/
