@@ -1,5 +1,6 @@
 import { InteractionType, InteractionResponseType, verifyKey } from "discord-interactions";
 import { SYSTEM_PROMPT, SNIPPET_PROMPT } from "./prompts";
+import { HTML } from "./site";
 
 export interface Env {
 	DISCORD_PUBLIC_KEY: string;
@@ -37,7 +38,11 @@ interface DiscordInteraction {
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 		if (request.method === "GET") {
-			return Response.json({ status: "ok", uptime: Date.now() }, { status: 200 });
+			const url = new URL(request.url);
+			if (url.pathname !== "/") {
+				return new Response("Not Found", { status: 404 });
+			}
+			return new Response(HTML, { headers: { "Content-Type": "text/html; charset=utf-8" } });
 		}
 
 		if (request.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
