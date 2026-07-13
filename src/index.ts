@@ -142,7 +142,7 @@ async function handleDeepSeek(question: string, appId: string, token: string, en
 
 		const { prompt_tokens, completion_tokens, total_tokens } = data.usage;
 		const cost = ((prompt_tokens * 0.14) + (completion_tokens * 0.28)) / 1_000_000;
-		const stats = `-# \u26a1 ${total_tokens} tokens ($${cost.toFixed(6)})`;
+		const stats = `-# \u26a1 ${total_tokens} tokens ($${cost < 0.000001 ? "<0.000001" : cost.toFixed(6)})`;
 
 		answer = answer.replace(/(?<!<)(https?:\/\/[^\s<>]+)/g, "<$1>");
 
@@ -158,8 +158,18 @@ async function handleDeepSeek(question: string, appId: string, token: string, en
 function fixMarkdown(text: string): string {
 	if ((text.match(/```/g)?.length ?? 0) % 2 !== 0) text += "\n```";
 
-	const singleBackticks = text.match(/(?<!`)`(?!``)/g);
-	if (singleBackticks && singleBackticks.length % 2 !== 0) text += "`";
+	// Count single backticks outside of code blocks
+	const lines = text.split("\n");
+	let inBlock = false;
+	let singleCount = 0;
+	for (const line of lines) {
+		if (/^```/.test(line.trim())) { inBlock = !inBlock; continue; }
+		if (!inBlock) {
+			const matches = line.match(/(?<!`)`(?!``)/g);
+			if (matches) singleCount += matches.length;
+		}
+	}
+	if (singleCount % 2 !== 0) text += "`";
 
 	text = text.replace(/\n{3,}/g, "\n\n");
 	text = text.replace(/```\n(?!\n)(?!$)/g, "```\n\n");

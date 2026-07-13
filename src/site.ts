@@ -30,8 +30,8 @@ hr{border:none;border-top:1px solid #21262d;margin:1.5rem 0;}
 <p>A programming reference bot for the ParvenPi server. Answers questions and generates code snippets through DeepSeek V4 Flash, hosted on Cloudflare Workers.</p>
 <h2>Commands</h2>
 <div class="card">
-<p><strong style="color:#f0f6fc;">/ask</strong> <code>&lt;question&gt;</code> asks any programming question and gets a concise answer with a reference link.</p>
-<p style="margin-bottom:0;"><strong style="color:#f0f6fc;">/snippet</strong> <code>&lt;refer&gt;</code> <code>&lt;language&gt;</code> generates a short code snippet with inline comments and a reference link. Language is required for syntax highlighting.</p>
+<p><strong style="color:#f0f6fc;">/ask</strong> <code>&lt;question&gt;</code> Ask me anything.</p>
+<p style="margin-bottom:0;"><strong style="color:#f0f6fc;">/snippet</strong> <code>&lt;refer&gt;</code> <code>&lt;language&gt;</code> generates a short code snippet with inline comments and a reference link. Choose the programming language.</p>
 </div>
 <h2>Privacy Policy</h2>
 <div class="card">

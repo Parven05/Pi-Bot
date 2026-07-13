@@ -6,8 +6,8 @@ A private Discord bot for the ParvenPi server. Runs on Cloudflare Workers and us
 
 | Command | Description |
 |---|---|
-| `/ask <question>` | Ask a programming question. Returns a concise answer with a reference link. |
-| `/snippet <refer> <language>` | Generate a short code snippet with inline explanations and a reference link. |
+| `/ask <question>` | Ask me anything. |
+| `/snippet <refer> <language>` | Generate a short code snippet with inline comments and a reference link. Choose the programming language. |
 
 ## Setup
 
@@ -32,7 +32,21 @@ Deploy:
 npm run deploy
 ```
 
-Set the Worker URL as your Discord Interactions Endpoint URL in the Discord Developer Portal. Register the `/ask` and `/snippet` slash commands.
+Set the Worker URL as your Discord Interactions Endpoint URL in the Discord Developer Portal.
+
+Register the slash commands:
+
+```bash
+export DISCORD_APP_ID=<your-app-id>
+export DISCORD_BOT_TOKEN=<your-bot-token>
+
+# For a specific guild (instant, good for testing):
+export GUILD_ID=<your-guild-id>
+npm run register
+
+# Or globally (can take up to 1 hour to propagate):
+npm run register
+```
 
 ## Project Structure
 

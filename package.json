@@ -5,13 +5,16 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "register": "npx tsx src/register-commands.ts"
   },
   "dependencies": {
     "discord-interactions": "^4.1.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250712.0",
+    "@types/node": "^26.1.1",
+    "tsx": "^4.0.0",
     "typescript": "^5.7.0",
     "wrangler": "^3.100.0"
   }
