@@ -1,4 +1,30 @@
+/**
+ * Register slash commands with Discord.
+ * Usage: npx tsx register-commands.ts
+ *
+ * Requires env vars:
+ *   DISCORD_APP_ID    - your Discord application ID
+ *   DISCORD_BOT_TOKEN - your bot token
+ *
+ * Optional:
+ *   GUILD_ID - register only in a specific guild (instant, good for testing)
+ *              Omitting this registers globally (may take up to 1 hour to propagate)
+ */
+
 const DISCORD_API = "https://discord.com/api/v10";
+const OPTION_TYPE_STRING = 3;
+
+const LANGUAGE_CHOICES = [
+	"C",
+	"C++",
+	"C#",
+	"Rust",
+	"Java",
+	"JavaScript",
+	"Python",
+	"Bash",
+	"Nix",
+].map(lang => ({ name: lang, value: lang }));
 
 const commands = [
 	{
@@ -6,7 +32,7 @@ const commands = [
 		description: "Ask me anything",
 		options: [
 			{
-				type: 3, // STRING
+				type: OPTION_TYPE_STRING,
 				name: "question",
 				description: "Your question",
 				required: true,
@@ -18,16 +44,17 @@ const commands = [
 		description: "Generate a short code snippet",
 		options: [
 			{
-				type: 3, // STRING
+				type: OPTION_TYPE_STRING,
 				name: "refer",
 				description: "Describe the snippet you need",
 				required: true,
 			},
 			{
-				type: 3, // STRING
+				type: OPTION_TYPE_STRING,
 				name: "language",
 				description: "Choose the programming language",
-				required: false,
+				required: true,
+				choices: LANGUAGE_CHOICES,
 			},
 		],
 	},
@@ -48,17 +75,22 @@ async function main() {
 		: `${DISCORD_API}/applications/${appId}/commands`;
 
 	console.log(`Registering ${commands.length} command(s)...`);
-	if (guildId) console.log(`  (guild: ${guildId})`);
-	else console.log("  (global — may take up to 1 hour to propagate)");
+	console.log(guildId ? `  (guild: ${guildId})` : "  (global — may take up to 1 hour to propagate)");
 
-	const res = await fetch(endpoint, {
-		method: "PUT",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bot ${token}`,
-		},
-		body: JSON.stringify(commands),
-	});
+	let res: Response;
+	try {
+		res = await fetch(endpoint, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bot ${token}`,
+			},
+			body: JSON.stringify(commands),
+		});
+	} catch (err) {
+		console.error("Network error registering commands:", err);
+		process.exit(1);
+	}
 
 	if (!res.ok) {
 		const body = await res.text().catch(() => "");

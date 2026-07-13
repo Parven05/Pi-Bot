@@ -1,13 +1,13 @@
 # Pi-Bot
 
-A private Discord bot for the ParvenPi server. Runs on Cloudflare Workers and uses DeepSeek V4 Flash for responses.
+A Discord bot for the ParvenPi server. Runs on Cloudflare Workers and uses DeepSeek V4 Flash.
 
 ## Commands
 
 | Command | Description |
 |---|---|
 | `/ask <question>` | Ask me anything. |
-| `/snippet <refer> <language>` | Generate a short code snippet with inline comments and a reference link. Choose the programming language. |
+| `/snippet <refer> <language>` | Quick example or boilerplate for a specific concept. Pick a language from the dropdown. Refuses full code requests, AI-generated code isn't good practice. |
 
 ## Setup
 
@@ -52,9 +52,10 @@ npm run register
 
 ```
 src/
-├── index.ts    # Worker entrypoint and command logic
-├── prompts.ts  # System prompts for the AI
-└── site.ts     # Static site HTML (about, privacy, terms)
+├── index.ts              # Worker entrypoint and command logic
+├── prompts.ts            # System prompts for the AI
+├── register-commands.ts  # Slash command registration script
+└── site.ts               # Static site HTML (about, privacy, terms)
 ```
 
 ## License
