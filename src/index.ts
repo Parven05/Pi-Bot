@@ -1,4 +1,5 @@
 import { InteractionType, InteractionResponseType, verifyKey } from "discord-interactions";
+import { SYSTEM_PROMPT, SNIPPET_PROMPT } from "./prompts";
 
 export interface Env {
 	DISCORD_PUBLIC_KEY: string;
@@ -7,38 +8,17 @@ export interface Env {
 	DEEPSEEK_MODEL: string;
 }
 
-const SYSTEM_PROMPT = [
-	"You are Pi Bot, a helper for the ParvenPi Discord server created by Parven.",
-	"You use DeepSeek V4 Flash (an open source model) to answer questions and provide code snippets.",
-	"You are a reference tool — not a person, not a generic chatbot.",
-	"Be concise, direct, and straightforward. Use simple English. Short replies. No fluff.",
-	"Do not speculate or make things up. If you are unsure, say so.",
-	"When providing code, cite the documentation you referenced.",
-	"Do not mention other AI models or compare yourself to them.",
-	"Never use bullet points, dashes, or numbered lists. Plain sentences only.",
-	"Always close all markdown formatting (bold, code blocks, etc.).",
-	"If asked about my creator: my creator is Parven, a graphics programmer focused on simulation systems, game engine development, and real-time rendering. He works with Zig (primary), C++ and Odin (secondary). His YouTube channel is https://www.youtube.com/@ParvenPi",
-	"If asked why I was made: I was built to help the ParvenPi Discord server with programming questions and code references.",
-	"Refuse NSFW or inappropriate content politely. Say you are a programming reference tool and cannot answer that.",
-].join("\n");
-
-const SNIPPET_PROMPT = [
-	"You write concise code snippets for reference.",
-	"First provide the code in ```<lang>\\n...```, then explain what it does in one short paragraph.",
-	"Format:\n```<lang>\n<code>```\n<explanation>",
-	"No preamble. Start with the code block directly.",
-	"The user prompt is short (under 5 words). Focus on exactly what they asked.",
-	"Keep snippets under 30 lines.",
-	"Use the correct language tag in ```<lang> for syntax highlighting.",
-	"Supported languages: asm, hc, cpp, cs, rust, odin, zig, java, javascript, python.",
-	"After the explanation, add: Docs: [language or library name](<url>)",
-	"Only include the link if you are confident it exists.",
-].join("\n");
-
-const COOLDOWN_MS = 10_000;
 const cooldowns = new Map<string, number>();
+const COOLDOWN_CLEANUP_INTERVAL = 60_000;
+let lastCleanup = Date.now();
 
 function checkCooldown(id: string): number | null {
+	if (Date.now() - lastCleanup > COOLDOWN_CLEANUP_INTERVAL) {
+		const now = Date.now();
+		for (const [k, v] of cooldowns) if (now >= v) cooldowns.delete(k);
+		lastCleanup = Date.now();
+	}
+
 	const until = cooldowns.get(id);
 	if (!until) return null;
 	if (Date.now() >= until) { cooldowns.delete(id); return null; }
@@ -111,7 +91,7 @@ export default {
 					data: { content: `\u23f1 Wait ${Math.ceil(remaining / 1000)}s before asking again.`, flags: 64 },
 				});
 			}
-			cooldowns.set(uid, Date.now() + COOLDOWN_MS);
+			cooldowns.set(uid, Date.now() + 10_000);
 
 			const { application_id, token } = interaction;
 			ctx.waitUntil(handleDeepSeek(question, application_id, token, env, name));
@@ -152,18 +132,14 @@ async function handleDeepSeek(question: string, appId: string, token: string, en
 		};
 
 		if (!data.choices?.length) throw new Error("Empty response from DeepSeek");
-		let answer = cleanMarkdown(data.choices[0].message.content.trim());
+		let answer = fixMarkdown(data.choices[0].message.content.trim());
 		if (!answer) answer = "I don't have a good answer for that. Try being more specific.";
 
 		const { prompt_tokens, completion_tokens, total_tokens } = data.usage;
 		const cost = ((prompt_tokens * 0.14) + (completion_tokens * 0.28)) / 1_000_000;
-		const stats = `-# ⚡ ${total_tokens} tokens ($${cost.toFixed(6)})`;
+		const stats = `-# \u26a1 ${total_tokens} tokens ($${cost.toFixed(6)})`;
 
-		// Wrap any bare URLs in <> to suppress Discord embeds
-		answer = answer.replace(/\(<?https?:\/\/[^)>\s]+>?\)/g, m => {
-			if (m.includes("<")) return m;
-			return `(<${m.slice(1, -1)}>)`;
-		});
+		answer = answer.replace(/(?<!<)(https?:\/\/[^\s<>]+)/g, "<$1>");
 
 		const safe = question.replace(/([*_~`|>])/g, "\\$1");
 		await patchWebhook(appId, token, `**${safe}**\n${answer}\n${stats}`);
@@ -174,39 +150,28 @@ async function handleDeepSeek(question: string, appId: string, token: string, en
 	}
 }
 
-function cleanMarkdown(text: string): string {
+function fixMarkdown(text: string): string {
 	if ((text.match(/```/g)?.length ?? 0) % 2 !== 0) text += "\n```";
 
-	const pairs: [RegExp, string][] = [
-		[/\*\*/g, "**"],
-		[/__/g, "__"],
-		[/~~/g, "~~"],
-		[/\|\|/g, "||"],
-	];
-	for (const [re, closer] of pairs) {
-		if ((text.match(re)?.length ?? 0) % 2 !== 0) text += closer;
-	}
+	const singleBackticks = text.match(/(?<!`)`(?!``)/g);
+	if (singleBackticks && singleBackticks.length % 2 !== 0) text += "`";
 
-	const backticks = text.match(/(?<!`)`(?!``)/g);
-	if (backticks && backticks.length % 2 !== 0) text += "`";
-
-	// Normalize spacing: collapse 3+ newlines into 2
 	text = text.replace(/\n{3,}/g, "\n\n");
-
-	// Ensure exactly one blank line after closing ``` before text
-	text = text.replace(/```\n\n{2,}/g, "```\n\n");
 	text = text.replace(/```\n(?!\n)(?!$)/g, "```\n\n");
-
-	// Ensure no blank line between opening ``` and code
 	text = text.replace(/```(\w*)\n\n+/g, "```$1\n");
 
 	return text.split("\n").map(l => l.trimEnd()).join("\n").trim();
 }
 
 async function patchWebhook(appId: string, token: string, content: string): Promise<void> {
-	await fetch(`https://discord.com/api/v10/webhooks/${appId}/${token}/messages/@original`, {
-		method: "PATCH",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ content }),
-	});
+	try {
+		const res = await fetch(`https://discord.com/api/v10/webhooks/${appId}/${token}/messages/@original`, {
+			method: "PATCH",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ content }),
+		});
+		if (!res.ok) console.error("Webhook PATCH failed:", res.status, await res.text().catch(() => ""));
+	} catch (err) {
+		console.error("Webhook error:", err);
+	}
 }
