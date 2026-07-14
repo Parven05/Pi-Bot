@@ -150,22 +150,22 @@ To change the persona:
 ```
 pi-bot/
 ├── .gitignore
-├── LICENSE               MIT license
+├── LICENSE                     MIT license
 ├── README.md
-├── package.json          Dependencies and scripts
+├── package.json                Dependencies and scripts
 ├── tsconfig.json
-├── run.sh                Helper for deploy and register commands
-├── wrangler.toml         Worker config with all parameters
+├── run.sh                      Helper for deploy and register commands
+├── wrangler.toml               Worker config with all parameters
 ├── docs/
-│   └── site.ts           HTML page for root URL (privacy policy, terms)
+│   └── site.ts                 HTML page for root URL (privacy policy, terms)
 ├── scripts/
-│   └── register-commands.ts  Registers Discord slash commands
+│   └── register-commands.ts    Registers Discord slash commands
 ├── secrets/
-│   └── .env              API keys and tokens, not committed
+│   └── .env                    API keys and tokens, not committed
 └── src/
-    ├── index.ts          Main worker. Handles everything.
-    ├── commands.ts       Defines /ask and /snippet commands
-    └── prompts.ts        System prompts sent to the AI
+    ├── index.ts                Main worker. Handles everything.
+    ├── commands.ts             Defines /ask and /snippet commands
+    └── prompts.ts              System prompts sent to the AI
 ```
 
 ## License
