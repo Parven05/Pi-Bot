@@ -12,37 +12,44 @@ async function main() {
     process.exit(1);
   }
 
-  const endpoint = guildId
+  async function put(endpoint: string, body: unknown) {
+    const res = await fetch(endpoint, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bot ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      console.error(`PUT ${endpoint} failed: ${res.status} ${text}`);
+      process.exit(1);
+    }
+    return res.json() as Promise<{ id: string; name: string }[]>;
+  }
+
+  const target = guildId
     ? `${DISCORD_API}/applications/${appId}/guilds/${guildId}/commands`
     : `${DISCORD_API}/applications/${appId}/commands`;
 
   console.log(`Registering ${DISCORD_COMMANDS.length} command(s)...`);
   console.log(guildId ? `  (guild: ${guildId})` : "  (global — may take up to 1 hour to propagate)");
 
-  let res: Response;
-  try {
-    res = await fetch(endpoint, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bot ${token}`,
-      },
-      body: JSON.stringify(DISCORD_COMMANDS),
-    });
-  } catch (err) {
-    console.error("Network error registering commands:", err);
-    process.exit(1);
-  }
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    console.error(`Failed to register commands: ${res.status} ${body}`);
-    process.exit(1);
-  }
-
-  const registered = (await res.json()) as { id: string; name: string }[];
+  // Register commands in the target scope
+  const registered = await put(target, DISCORD_COMMANDS);
   for (const cmd of registered) {
     console.log(`  /${cmd.name} registered (id: ${cmd.id})`);
+  }
+
+  // Clear the opposite scope to prevent duplicate commands in Discord
+  const opposite = guildId
+    ? `${DISCORD_API}/applications/${appId}/commands`
+    : `${DISCORD_API}/applications/${appId}/guilds/${guildId}/commands`;
+  if (opposite !== target) {
+    console.log(guildId ? "  Clearing global commands..." : `  Clearing guild commands (${guildId})...`);
+    await put(opposite, []);
+    console.log("  Done.");
   }
 }
 

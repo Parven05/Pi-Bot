@@ -350,6 +350,7 @@ function fixMarkdown(text: string): string {
 	text = text.replace(/\n{3,}/g, "\n\n");
 	text = text.replace(/```\n(?!\n)(?!$)/g, "```\n\n");
 	text = text.replace(/```(\w*)\n\n+/g, "```$1\n");
+	text = text.replace(/([^\n])\n\s*Refer:/g, "$1\n\nRefer:");
 
 	return text
 		.split("\n")
