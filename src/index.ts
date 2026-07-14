@@ -1,6 +1,6 @@
 import { InteractionType, InteractionResponseType, verifyKey } from "discord-interactions";
 import { SYSTEM_PROMPT, SNIPPET_PROMPT } from "./prompts";
-import { HTML } from "./site";
+import { HTML } from "../docs/site";
 
 export interface Env {
 	DISCORD_PUBLIC_KEY: string;
@@ -179,7 +179,7 @@ export default {
 	},
 };
 
-async function callDeepSeek(question: string, env: Env, mode: string, attempt: number): Promise<{ content: string; usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number } }> {
+async function callDeepSeek(question: string, env: Env, mode: string): Promise<{ content: string; usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number } }> {
 	const system = mode === "snippet" ? SNIPPET_PROMPT : SYSTEM_PROMPT;
 
 	const res = await fetch(`${env.DEEPSEEK_BASE_URL}/v1/chat/completions`, {
@@ -217,7 +217,7 @@ async function handleDeepSeek(question: string, appId: string, token: string, en
 
 	for (let attempt = 0; attempt <= API_RETRIES; attempt++) {
 		try {
-			const result = await callDeepSeek(question, env, mode, attempt);
+			const result = await callDeepSeek(question, env, mode);
 
 			let answer = fixMarkdown(result.content);
 			if (!answer) answer = "I don't have a good answer for that. Try being more specific.";

@@ -18,6 +18,8 @@ env/
 .env
 .envrc
 .env.wrangler
+.dev.vars
+secrets/
 
 # devenv
 .devenv/
