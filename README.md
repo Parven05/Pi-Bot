@@ -89,32 +89,51 @@ If you only want to deploy or register separately:
 `SNIPPET_PROMPT` controls how code snippets are generated. It sets:
 - Output format (code block + explanation)
 - Max 30 lines per snippet
-- No placeholders or TODOs — every line must run
+- No placeholders or TODOs. Every line must run
 - Must explain like the reader is a beginner
 
 ### Connect a different AI provider (`wrangler.toml`)
 
-Open `wrangler.toml` and change the `[vars]` section to match your provider:
+Open `wrangler.toml` and change the `[vars]` section to match your provider. The env var names (`DEEPSEEK_*`) stay the same, just point them at your provider:
 
 ```toml
 [vars]
-DEEPSEEK_BASE_URL = "https://api.openai.com"       # or any OpenAI-compatible base URL
-DEEPSEEK_MODEL = "gpt-4o-mini"                     # model name your provider supports
+# DeepSeek
+DEEPSEEK_BASE_URL = "https://api.deepseek.com"
+DEEPSEEK_MODEL = "deepseek-chat"
+
+# OpenAI
+# DEEPSEEK_BASE_URL = "https://api.openai.com"
+# DEEPSEEK_MODEL = "gpt-4o-mini"
+
+# Groq
+# DEEPSEEK_BASE_URL = "https://api.groq.com/openai/v1"
+# DEEPSEEK_MODEL = "llama-3.3-70b-versatile"
+
+# OpenRouter
+# DEEPSEEK_BASE_URL = "https://openrouter.ai/api/v1"
+# DEEPSEEK_MODEL = "openai/gpt-4o-mini"
+
+# Together
+# DEEPSEEK_BASE_URL = "https://api.together.xyz/v1"
+# DEEPSEEK_MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1"
 ```
 
 No code changes needed. The bot reads these from the environment at runtime.
+
+> Claude (Anthropic) is not OpenAI compatible. This bot will not work with it without code changes.
 
 ### Why snippets refuse full code requests
 
 The bot uses two things to keep snippets short:
 
-1. **`FULL_CODE_PATTERNS`** in `src/index.ts` — detects phrases like "full app", "production code", "complete project" and rejects them
-2. **`max_tokens: 600`** for snippets vs 1024 for questions — limits output length
+1. **`FULL_CODE_PATTERNS`** in `src/index.ts`. Detects phrases like "full app", "production code", "complete project" and rejects them.
+2. **`max_tokens: 600`** for snippets vs 1024 for questions. Limits output length.
 
 This is intentional:
-- **Save tokens** — short responses cost less
-- **Keep it a reference tool** — the bot teaches concepts and patterns, not copy-paste solutions
-- **Ethical** — blindly using AI-generated code without understanding it is bad practice
+- **Save tokens.** Short responses cost less.
+- **Keep it a reference tool.** The bot teaches concepts and patterns, not copy-paste solutions.
+- **Ethical.** Blindly using AI-generated code without understanding it is bad practice.
 
 You can remove or change `FULL_CODE_PATTERNS` if you want to allow full code requests.
 
