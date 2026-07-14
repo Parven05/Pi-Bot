@@ -19,8 +19,6 @@ export interface Env {
 	MIN_INPUT_CHARS: string;
 	MAX_INPUT_CHARS: string;
 	API_TIMEOUT_MS: string;
-	API_RETRIES: string;
-	RETRY_DELAY_MS: string;
 }
 
 type TunableKey =
@@ -49,9 +47,7 @@ const TUNABLE_KEYS: TunableKey[] = [
 	"COOLDOWN_CLEANUP_INTERVAL_MS",
 	"MIN_INPUT_CHARS",
 	"MAX_INPUT_CHARS",
-	"API_TIMEOUT_MS",
-	"API_RETRIES",
-	"RETRY_DELAY_MS",
+	"API_TIMEOUT_MS"
 ];
 
 function checkTunablesConfigured(env: Env): string | null {
@@ -288,31 +284,18 @@ async function handleResponse(
 	env: Env,
 	mode: string,
 ): Promise<void> {
-	const retries = tunable(env, "API_RETRIES");
-	const retryDelay = tunable(env, "RETRY_DELAY_MS");
+	try {
+		const result = await callAPI(question, env, mode);
 
-	for (let attempt = 0; attempt <= retries; attempt++) {
-		try {
-			const result = await callAPI(question, env, mode);
+		const answer = fixMarkdown(result.content) || "I don't have a good answer for that. Try being more specific.";
+		const linked = answer.replace(/(?<!<)(https?:\/\/[^\s<>]+)/g, "<$1>");
+		const stats = formatStats(result.usage, env);
+		const safeQuestion = question.replace(/([*_~`|>])/g, "\\$1");
 
-			const answer = fixMarkdown(result.content) || "I don't have a good answer for that. Try being more specific.";
-			const linked = answer.replace(/(?<!<)(https?:\/\/[^\s<>]+)/g, "<$1>");
-			const stats = formatStats(result.usage, env);
-			const safeQuestion = question.replace(/([*_~`|>])/g, "\\$1");
-
-			await patchWebhook(appId, token, `**${safeQuestion}**\n${linked}\n${stats}`);
-			return;
-		} catch (err) {
-			const message = err instanceof Error ? err.message : "Unknown error";
-			console.error(`API attempt ${attempt + 1}/${retries + 1} failed:`, message);
-
-			if (attempt < retries) {
-				await new Promise(r => setTimeout(r, retryDelay));
-			}
-		}
+		await patchWebhook(appId, token, `**${safeQuestion}**\n${linked}\n${stats}`);
+	} catch {
+		await patchWebhook(appId, token, "Your question is beyond my knowledge, ask other.");
 	}
-
-	await patchWebhook(appId, token, `\u26a0\ufe0f Still thinking after ${retries + 1} tries. Try again later.`);
 }
 
 function formatStats(usage: ChatUsage, env: Env): string {
