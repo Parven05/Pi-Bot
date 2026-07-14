@@ -31,7 +31,7 @@ hr{border:none;border-top:1px solid #21262d;margin:1.5rem 0}
 <h2>Commands</h2>
 <div class="card">
 <p><strong style="color:#f0f6fc;">/ask</strong> <code>&lt;question&gt;</code> Ask me anything.</p>
-<p style="margin-bottom:0;"><strong style="color:#f0f6fc;">/snippet</strong> <code>&lt;refer&gt;</code> <code>&lt;language&gt;</code> Quick example or boilerplate for a specific concept. Pick a language from the dropdown. Full code requests are rejected</p>
+<p style="margin-bottom:0;"><strong style="color:#f0f6fc;">/snippet</strong> <code>&lt;refer&gt;</code> <code>&lt;language&gt;</code> Quick example or boilerplate for a specific concept. Pick a language from the dropdown. Full code requests are rejected.</p>
 </div>
 <h2>Privacy Policy</h2>
 <div class="card">
