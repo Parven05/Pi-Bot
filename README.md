@@ -1,16 +1,14 @@
 # Pi-Bot
 
-A Discord bot that answers questions and generates code snippets using any OpenAI-compatible API (DeepSeek, OpenAI, Groq, Together, etc.). Runs on Cloudflare Workers.
+A Discord bot that answers questions and generates code snippets using any OpenAI-compatible API. Hosted on Cloudflare Workers for free.
 
 Commands: `/ask <question>` and `/snippet <refer> <language>`
 
 ---
 
-## Setup
+## How to make your own bot
 
-This guide gets your own Pi-Bot running. You need a Discord app, a Cloudflare account, and an AI provider API key. Free tiers work for all three.
-
-### Step 1 — Clone the code
+Clone, fill in two files, deploy. Takes 10 minutes.
 
 ```bash
 git clone https://github.com/Parven05/Pi-Bot
@@ -18,52 +16,60 @@ cd pi-bot
 npm install
 ```
 
-### Step 2 — Create a Discord app
+### 1. Get four things from Discord
 
-Go to the [Discord Developer Portal](https://discord.com/developers/applications) and click New Application. Name it (e.g. "Pi-Bot").
+Create a new app at the [Discord Developer Portal](https://discord.com/developers/applications). Then collect these:
 
-Go to the Bot page and click Reset Token. Copy the token that appears. This is your bot token.
+Bot page → Reset Token → copy the **bot token**.
 
-On the same Bot page, turn on Message Content Intent under Privileged Gateway Intents.
+Bot page → turn on **Message Content Intent**.
 
-Go to OAuth2 > General. Copy the Client ID at the top. This is your app ID.
+OAuth2 > General → copy the **Client ID** (this is your app ID).
 
-Go to General Information. Copy the Public Key near the bottom.
+General Information → copy the **Public Key**.
 
-Still on OAuth2 > General, find the OAuth2 URL Generator. Check `applications.commands` and `bot`. Open the generated URL in your browser and add the bot to a Discord server you own.
+OAuth2 URL Generator → check `applications.commands` and `bot` → open the URL → add the bot to your server.
 
-You should now have three values saved: bot token, client ID, and public key.
+### 2. Get two API keys
 
-### Step 3 — Set up Cloudflare
+Cloudflare: Create an account, go to [API Tokens](https://dash.cloudflare.com/profile/api-tokens), create a token with the Edit Cloudflare Workers template. Copy it.
 
-Create a [Cloudflare account](https://dash.cloudflare.com/sign-up) if you don't have one.
+AI provider: Sign up at DeepSeek, OpenAI, Groq, or Together. Create an API key. Copy it.
 
-Go to [API Tokens](https://dash.cloudflare.com/profile/api-tokens) and click Create Token. Use the Edit Cloudflare Workers template. Under Account Resources select your account. Under Zone Resources select All zones. Click Continue to summary then Create Token. Copy the token.
+### 3. Create `secrets/.env`
 
-### Step 4 — Get an AI provider API key
-
-Pick any provider that supports OpenAI-compatible APIs. Popular options include DeepSeek (platform.deepseek.com, cheap and great for code), OpenAI (platform.openai.com, the original), Groq (console.groq.com, free tier available and fast), and Together (together.ai, free credits to start).
-
-Sign up and create an API key. Save it.
-
-### Step 5 — Fill in secrets
-
-Create the file `secrets/.env` and paste this:
+Paste this (replace everything in angle brackets):
 
 ```
-DISCORD_APP_ID=<your app ID>
-DISCORD_BOT_TOKEN=<your bot token>
-DISCORD_PUBLIC_KEY=<your public key>
-CLOUDFLARE_API_TOKEN=<your Cloudflare token>
-AI_API_KEY=<your AI provider API key>
-GUILD_ID=<your Discord server ID>   (optional)
+DISCORD_APP_ID=<app ID>
+DISCORD_BOT_TOKEN=<bot token>
+DISCORD_PUBLIC_KEY=<public key>
+CLOUDFLARE_API_TOKEN=<Cloudflare token>
+AI_API_KEY=<AI provider key>
+GUILD_ID=<server ID>   (optional, makes commands appear instantly)
 ```
 
-To find your server ID, turn on Developer Mode in Discord (User Settings > Advanced > Developer Mode), then right click your server icon and click Copy ID. If you set GUILD_ID, commands register instantly. Without it, global commands take up to an hour to show up.
+To find your server ID: Discord Settings > Advanced > Developer Mode (on), then right click your server icon > Copy ID.
 
-### Step 6 — Configure settings in `wrangler.toml`
+### 4. Review `wrangler.toml`
 
-Open `wrangler.toml`. This file has all non-secret settings. Every field is explained in comments below.
+Open it. Every setting already has working defaults. The comments explain what each field does. The only thing you might change is `AI_BASE_URL` and `AI_MODEL` to match your AI provider. The actual API key goes in `secrets/.env`, not here.
+
+### 5. Deploy
+
+```bash
+./run.sh all
+```
+
+### 6. Connect Discord
+
+Back in the Discord Developer Portal, open your app. Go to General Information. Set Interactions Endpoint URL to `https://pi-bot.<your-subdomain>.workers.dev`. The terminal shows the full URL after deploying. Click Save.
+
+Done. Type `/ask` or `/snippet` in your server.
+
+---
+
+## `wrangler.toml` — all settings explained in comments
 
 ```toml
 name = "pi-bot"
@@ -74,143 +80,102 @@ compatibility_date = "2025-07-01"
 
 # === AI PROVIDER ===
 
-# Base URL for your AI provider's API.
-# DeepSeek:   https://api.deepseek.com
-# OpenAI:     https://api.openai.com/v1
-# Groq:       https://api.groq.com/openai/v1
-# Together:   https://api.together.xyz/v1
+# DeepSeek: https://api.deepseek.com  |  OpenAI: https://api.openai.com/v1
+# Groq:     https://api.groq.com/openai/v1  |  Together: https://api.together.xyz/v1
 AI_BASE_URL = "https://api.deepseek.com"
 
-# Model name to use.
-# DeepSeek: "deepseek-chat" or "deepseek-reasoner"
-# OpenAI:   "gpt-4o-mini" or "gpt-4o"
-# Groq:     "llama-3.3-70b-versatile"
-# Together: "mistralai/Mixtral-8x7B-Instruct-v0.1"
+# DeepSeek: "deepseek-chat"  |  OpenAI: "gpt-4o-mini"
+# Groq: "llama-3.3-70b-versatile"  |  Together: "mistralai/Mixtral-8x7B-Instruct-v0.1"
 AI_MODEL = "deepseek-v4-flash"
 
-# Don't put your API key here. Put it in secrets/.env as AI_API_KEY instead.
+# Put your actual key in secrets/.env, not here.
 AI_API_KEY = ""
 
 # === COST TRACKING ===
 
-# Price per million input/output tokens in USD.
-# Shows up in the bot's footer (e.g. "128 tokens ($0.000002)").
-# Leave empty or invalid to show token count only.
+# Price per million input/output tokens in USD. Shows in response footer.
+# Leave empty to show token count only.
 AI_INPUT_COST_PER_M = "0.14"
 AI_OUTPUT_COST_PER_M = "0.28"
 
-# === REASONING / THINKING ===
+# === REASONING ===
 
-# Set to "on" for models with chain-of-thought reasoning (OpenAI o-series, DeepSeek R1).
-# Leave "off" for normal chat models.
+# "on" for chain-of-thought models (OpenAI o-series, DeepSeek R1). "off" otherwise.
 AI_REASONING_ENABLED = "off"
 
-# Controls how much the model thinks before answering: "low", "medium", or "high".
-# Only used when AI_REASONING_ENABLED is "on".
+# How much the model thinks: "low", "medium", or "high". Only when REASONING_ENABLED is "on".
 AI_REASONING_EFFORT = "medium"
 
 # === RATE LIMITING ===
 
-# Milliseconds a user must wait between commands. 10000 = 10 seconds.
-COOLDOWN_MS = "10000"
+COOLDOWN_MS = "10000"                    # Wait between commands per user (ms). 10000 = 10s.
+COOLDOWN_CLEANUP_INTERVAL_MS = "60000"   # Stale cooldown cleanup interval (ms).
 
-# Milliseconds between cleanup passes of stale cooldown records. Just maintenance.
-COOLDOWN_CLEANUP_INTERVAL_MS = "60000"
+# === INPUT ===
 
-# === INPUT VALIDATION ===
+MIN_INPUT_CHARS = "4"     # Shortest question allowed.
+MAX_INPUT_CHARS = "800"   # Longest question allowed.
 
-# Minimum characters per question.
-MIN_INPUT_CHARS = "4"
+# === RETRIES ===
 
-# Maximum characters per question. Longer input gets rejected.
-MAX_INPUT_CHARS = "800"
-
-# === API TIMEOUT & RETRIES ===
-
-# Milliseconds to wait for the AI provider before timing out. 25000 = 25 seconds.
-API_TIMEOUT_MS = "25000"
-
-# Number of retry attempts on failure. 0 means no retries.
-API_RETRIES = "1"
-
-# Milliseconds to wait between retries. 1000 = 1 second.
-RETRY_DELAY_MS = "1000"
+API_TIMEOUT_MS = "25000"   # API call timeout (ms). 25000 = 25s.
+API_RETRIES = "1"          # Retry count on failure. 0 = no retries.
+RETRY_DELAY_MS = "1000"    # Wait between retries (ms).
 ```
 
-You can change any value here without touching code.
+---
 
-### Step 7 — Deploy
+## Features
 
-Run this from the project folder:
+**Two commands.** `/ask` answers any question at beginner level. `/snippet` generates short code examples in 9 languages with inline comments and explanation.
 
-```bash
-./run.sh all
-```
+**Cost tracking.** Every response footer shows token count and approximate cost based on your provider's pricing.
 
-This deploys the worker to Cloudflare and registers the slash commands with Discord.
+**Rate limiting.** Per user cooldown prevents spam. Configurable down to the millisecond.
 
-If you want to do them separately:
-```bash
-./run.sh deploy     # deploy worker only
-./run.sh register   # register commands only
-```
+**Configurable runtime.** All limits, timeouts, retries, and model settings live in `wrangler.toml`. No code edits for standard tuning.
 
-You can also use npm scripts:
-```bash
-npm run dev          # run locally for testing
-npm run register     # register commands (reads secrets/.env)
-npm run register:dev # register commands without reading .env
-```
+**Any OpenAI-compatible API.** Swap providers by changing `AI_BASE_URL` and `AI_MODEL`. Works with DeepSeek, OpenAI, Groq, Together, and others.
 
-### Step 8 — Connect Discord to your worker
+**Chain-of-thought support.** Enable `AI_REASONING_ENABLED` for models that think before answering (OpenAI o-series, DeepSeek R1).
 
-Go back to the [Discord Developer Portal](https://discord.com/developers/applications) and open your app. Go to General Information. Find Interactions Endpoint URL and set it to:
+**Guided snippet output.** Code examples are limited to 30 lines, no placeholders, every line runs as written. No copy paste slop.
 
-```
-https://pi-bot.<your-cloudflare-subdomain>.workers.dev
-```
+**Full code rejection.** Phrases like "full app" or "production code" are refused. Teaches concepts, not copy paste solutions. Edit `FULL_CODE_PATTERNS` in `src/index.ts` to disable.
 
-Your subdomain is whatever Cloudflare assigned (usually your worker name). The terminal shows the full URL after deploying. Click Save.
+**Unlimited output length.** No output token cap. Add `max_tokens` in `callAPI()` inside `src/index.ts` if you want one.
 
-You're done. Go to your Discord server and type `/ask` or `/snippet` to test the bot.
+**Landing page.** The worker root URL serves an HTML page. Edit `docs/site.ts` to change it.
+
+**Beginner personality.** The bot explains everything from scratch. No assumed knowledge. Edit `SYSTEM_PROMPT` in `src/prompts.ts` to change this.
 
 ---
 
 ## Customization
 
-### Bot personality
+**Personality** `src/prompts.ts` Edit SYSTEM_PROMPT (tone, name, rules) and SNIPPET_PROMPT (output format).
 
-Open `src/prompts.ts`. Edit `SYSTEM_PROMPT` to change the bot's name, tone, audience level, or rules. Edit `SNIPPET_PROMPT` to change how code snippets are formatted.
+**Languages** `src/commands.ts` Edit the LANGUAGES array. Default: C, C++, C#, Rust, Java, JavaScript, Python, Bash, Nix. Run `./run.sh register` after.
 
-### Snippet languages
+**Full code rejection** `src/index.ts` Edit or delete FULL_CODE_PATTERNS to allow full code requests.
 
-Open `src/commands.ts`. Edit the `LANGUAGES` array. Default languages are C, C++, C#, Rust, Java, JavaScript, Python, Bash, and Nix. After changing, run `./run.sh register` to update Discord.
+**Landing page** `docs/site.ts` Edit the HTML template literal.
 
-### Full code rejection
-
-By default the bot rejects phrases like "full app" or "production code". Open `src/index.ts` and edit or delete the `FULL_CODE_PATTERNS` array to change this.
-
-### Landing page
-
-Open `docs/site.ts`. The page at your worker URL is a single HTML string. Edit the template literal to change the title, description, privacy policy, or terms.
-
-### Output limits
-
-The bot has no output token limit. To add one, include `max_tokens` in the request body inside `callAPI()` in `src/index.ts`.
+**Output cap** `src/index.ts` Add `max_tokens` to the request body in `callAPI()`.
 
 ---
 
 ## Project structure
 
 ```
-docs/site.ts              Landing page HTML
-secrets/.env              Your secrets (gitignored, never commit this)
+docs/site.ts                  Landing page HTML
+secrets/.env                  Secrets (gitignored)
 scripts/register-commands.ts  Discord command registration
-src/commands.ts           Command definitions and language list
-src/index.ts              Main worker code
-src/prompts.ts            AI system prompts
-run.sh                    Deploy and register helper
-wrangler.toml             Worker config and non-secret settings
+src/commands.ts               Command defs and language list
+src/index.ts                  Main worker
+src/prompts.ts                AI system prompts
+run.sh                        Deploy and register helper
+wrangler.toml                 Config and non-secret settings
 package.json
 ```
 
