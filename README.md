@@ -69,7 +69,7 @@ A Discord bot that answers questions and generates code snippets. Uses DeepSeek 
 7. **Deploy.**
 
     ```
-    npm run deploy  # or run.sh all 
+    npm run deploy  # or ./run.sh all 
     ```
 
 8. **Set the interactions endpoint.**
