@@ -167,18 +167,6 @@ pi-bot/
     ├── commands.ts       Defines /ask and /snippet commands
     └── prompts.ts        System prompts sent to the AI
 ```
----
-
-## Features
-
-- **Beginner friendly responses.** The AI explains simply, defines terms, and avoids assuming prior knowledge.
-- **Per user cooldown.** Prevents spam and keeps API costs predictable. Duration is configurable in `wrangler.toml`.
-- **Automatic retries.** Retries the AI API call on failure. Shows a polite error if all attempts fail.
-- **Cost tracking.** Each response shows token count and estimated USD cost.
-- **No data storage.** User IDs exist in memory only for rate limiting and are discarded. Questions are sent to the AI API solely for generating a response. Full privacy policy at the root URL.
-- **Everything in one config file.** Edit `wrangler.toml` to change the AI model, API endpoint, cooldown timing, input limits, and more. No source code changes needed.
-
----
 
 ## License
 
