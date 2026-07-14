@@ -12,8 +12,6 @@ A Discord bot that answers questions and generates code snippets. Uses DeepSeek 
 
 ## Setup
 
-### Steps
-
 1. **Fork or clone this repo.**
 
     ```
