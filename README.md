@@ -1,6 +1,6 @@
 # Pi-Bot
 
-A Discord bot that answers questions and generates code snippets using DeepSeek V4 Flash. Runs on Cloudflare Workers.
+A Discord bot that answers questions and generates code snippets using any OpenAI-compatible API. Runs on Cloudflare Workers.
 
 Commands: `/ask <question>` and `/snippet <refer> <language>`
 
@@ -25,11 +25,11 @@ npm install
 5. Enable **Message Content Intent** on the Bot page
 6. Use the OAuth2 URL Generator to add the bot to a server with `applications.commands` and `bot` scopes
 
-### 3. Set up Cloudflare
+### 3. Set up Cloudflare and an AI provider
 
 1. Create a Cloudflare account if you don't have one
 2. Get your API token from https://dash.cloudflare.com/profile/api-tokens (needs `Workers` permission)
-3. Get a DeepSeek API key from https://platform.deepseek.com
+3. Get an API key from any OpenAI-compatible provider (DeepSeek, OpenAI, Groq, Together, etc.)
 
 ### 4. Fill in secrets
 
@@ -48,6 +48,8 @@ CLOUDFLARE_API_TOKEN=<from step 3>
 DISCORD_PUBLIC_KEY=<from step 2>
 DEEPSEEK_KEY=<from step 3>
 ```
+
+> The env var names (`DEEPSEEK_KEY`, `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL`) are just names. You can point them at any provider by changing `wrangler.toml` (see below).
 
 ### 5. Deploy
 
@@ -90,6 +92,18 @@ If you only want to deploy or register separately:
 - No placeholders or TODOs — every line must run
 - Must explain like the reader is a beginner
 
+### Connect a different AI provider (`wrangler.toml`)
+
+Open `wrangler.toml` and change the `[vars]` section to match your provider:
+
+```toml
+[vars]
+DEEPSEEK_BASE_URL = "https://api.openai.com"       # or any OpenAI-compatible base URL
+DEEPSEEK_MODEL = "gpt-4o-mini"                     # model name your provider supports
+```
+
+No code changes needed. The bot reads these from the environment at runtime.
+
 ### Why snippets refuse full code requests
 
 The bot uses two things to keep snippets short:
@@ -111,7 +125,6 @@ You can remove or change `FULL_CODE_PATTERNS` if you want to allow full code req
 | `MAX_INPUT_CHARS` | 800 | Max characters per question |
 | `MIN_INPUT_CHARS` | 4 | Min characters per question |
 | `COOLDOWN_MS` | 10,000 | Wait time (ms) between requests per user |
-| `DAILY_SNIPPET_LIMIT` | 10 | Max snippets per user per day (resets on restart) |
 | `API_TIMEOUT_MS` | 25,000 | Max wait for DeepSeek response |
 | `API_RETRIES` | 1 | Retry attempts on failure |
 | `temperature` | 0 (snippet) / 0.1 (ask) | Lower = more predictable, higher = more creative |

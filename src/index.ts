@@ -33,23 +33,6 @@ const FULL_CODE_PATTERNS = [
 	/entire\s*(code|program|project)/i,
 ];
 
-// Daily snippet limit per user (in-memory, resets on worker restart)
-const DAILY_SNIPPET_LIMIT = 10;
-const dailyUsage = new Map<string, { date: string; count: number }>();
-
-function checkDailyLimit(uid: string, mode: string): boolean {
-	if (mode !== "snippet") return true;
-	const today = new Date().toISOString().slice(0, 10);
-	const entry = dailyUsage.get(uid);
-	if (!entry || entry.date !== today) {
-		dailyUsage.set(uid, { date: today, count: 1 });
-		return true;
-	}
-	if (entry.count >= DAILY_SNIPPET_LIMIT) return false;
-	entry.count++;
-	return true;
-}
-
 const API_TIMEOUT_MS = 25_000;
 const API_RETRIES = 1;
 
@@ -161,10 +144,6 @@ export default {
 			const remaining = checkCooldown(uid);
 			if (remaining !== null) {
 				return ephemeral(`\u23f1 Wait ${Math.ceil(remaining / 1000)}s before asking again.`);
-			}
-
-			if (!checkDailyLimit(uid, name)) {
-				return ephemeral(`\u26a0 You've used your ${DAILY_SNIPPET_LIMIT} snippet requests for today. Try again tomorrow.`);
 			}
 
 			cooldowns.set(uid, Date.now() + COOLDOWN_MS);
