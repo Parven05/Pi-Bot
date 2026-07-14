@@ -98,21 +98,34 @@ Open `wrangler.toml` and change the `[vars]` section to match your provider:
 
 ```toml
 [vars]
-# ChatGPT (OpenAI)
+# Deepseek
 DEEPSEEK_BASE_URL = "https://api.openai.com"
 DEEPSEEK_MODEL = "gpt-4o-mini"
 
-# Claude (Anthropic)
-# DEEPSEEK_BASE_URL = "https://api.anthropic.com"
-# DEEPSEEK_MODEL = "claude-sonnet-4-20250514"
+# Claude
+# CLAUDE_BASE_URL = "https://api.anthropic.com"
+# CLAUDE_MODEL = "claude-sonnet-4-20250514"
 # Note: Claude uses a different API format. Needs code changes in callAPI().
 
 # OpenRouter
-# DEEPSEEK_BASE_URL = "https://openrouter.ai/api/v1"
-# DEEPSEEK_MODEL = "openai/gpt-4o-mini"
+# OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+# OPENROUTER_MODEL = "openai/gpt-4o-mini"
 ```
 
 No code changes needed for OpenAI compatible providers. Just change the values in `wrangler.toml` and put your key in `secrets/.dev.vars` as `DEEPSEEK_KEY`.
+
+### Supported languages for snippets
+
+The `/snippet` command only allows these 9 languages:
+
+`C`, `C++`, `C#`, `Rust`, `Java`, `JavaScript`, `Python`, `Bash`, `Nix`
+
+This is intentional. Fewer languages means:
+- **Better syntax highlighting.** Clean formatting for every output.
+- **Deeper model knowledge.** The model has more training data per language, so code is more accurate and hallucinations are lower.
+- **Higher quality.** Each language gets tested and tuned. Adding random languages would make the bot less reliable.
+
+To add or remove languages, edit `LANGUAGE_CHOICES` in both `src/index.ts` and `src/register-commands.ts`. The Discord dropdown and the server-side validation must stay in sync. After changing, run `./run.sh register` to update the Discord commands.
 
 ### Why snippets refuse full code requests
 
