@@ -167,13 +167,6 @@ pi-bot/
     ├── commands.ts       Defines /ask and /snippet commands
     └── prompts.ts        System prompts sent to the AI
 ```
-
-- **src/index.ts** verifies Discord signatures, parses commands, checks cooldowns, calls the AI API, retries on failure, and sends responses.
-- **src/commands.ts** defines `/ask` and `/snippet` commands. Supported languages: C, C++, C Sharp, Rust, Java, JavaScript, Python, Bash, Nix.
-- **src/prompts.ts** tells the AI to explain simply for beginners and keeps snippets under 30 lines.
-- **docs/site.ts** is the HTML page for the root URL.
-- **scripts/register-commands.ts** is run once after deploying to register commands with Discord.
-
 ---
 
 ## Features
