@@ -6,9 +6,9 @@ Commands: `/ask <question>` and `/snippet <refer> <language>`
 
 ---
 
-## Setup your own bot
+## Setup
 
-### 1. Clone and install
+### 1. Clone & install
 
 ```bash
 git clone https://github.com/Parven05/Pi-Bot
@@ -18,100 +18,67 @@ npm install
 
 ### 2. Create a Discord app
 
-1. Go to https://discord.com/developers/applications and create a new app
-2. Go to **Bot** page and copy the token
-3. Go to **OAuth2 > General** and copy the **Client ID** (this is your app ID)
-4. Go to **General Information** and copy the **Public Key**
+1. [Discord Dev Portal](https://discord.com/developers/applications) → new app
+2. **Bot** page → copy token
+3. **OAuth2 > General** → copy Client ID (app ID)
+4. **General Information** → copy Public Key
 5. Enable **Message Content Intent** on the Bot page
-6. Use the OAuth2 URL Generator to add the bot to a server with `applications.commands` and `bot` scopes
+6. OAuth2 URL Generator → add bot to a server with `applications.commands` + `bot` scopes
 
-### 3. Set up Cloudflare and an AI provider
+### 3. Set up Cloudflare & an AI provider
 
-1. Create a Cloudflare account if you don't have one
-2. Get your API token from https://dash.cloudflare.com/profile/api-tokens (needs `Workers` permission)
-3. Get an API key from any OpenAI-compatible provider (DeepSeek, OpenAI, Groq, Together, etc.)
+- Cloudflare account → [API token](https://dash.cloudflare.com/profile/api-tokens) with `Workers` permission
+- API key from any OpenAI-compatible provider (DeepSeek, OpenAI, Groq, Together, etc.)
 
 ### 4. Fill in secrets
 
 Edit `secrets/.env`:
 
 ```
-# Discord
-DISCORD_APP_ID=<from step 2>
-DISCORD_BOT_TOKEN=<from step 2>
-DISCORD_PUBLIC_KEY=<from step 2>
-GUILD_ID=<your Discord server ID> (optional, for instant registration)
-
-# Cloudflare
-CLOUDFLARE_API_TOKEN=<from step 3>
-
-# AI provider
-AI_API_KEY=<from step 3>
+DISCORD_APP_ID=<app ID>
+DISCORD_BOT_TOKEN=<bot token>
+DISCORD_PUBLIC_KEY=<public key>
+GUILD_ID=<server ID>          # optional, for instant command registration
+CLOUDFLARE_API_TOKEN=<token>  # from step 3
+AI_API_KEY=<API key>          # from step 3
 ```
 
-Non-secret config (model, base URL, cost tracking, reasoning settings) lives in `wrangler.toml` under `[vars]` — no need to touch `.env` for those.
+Non-secret config lives in `wrangler.toml [vars]` — no need to touch `.env` for those.
 
 ### 5. Deploy
 
 ```bash
-./run.sh all
+./run.sh all       # deploy worker + register commands
+./run.sh deploy    # deploy only
+./run.sh register  # register only
 ```
 
-This deploys the worker and registers the slash commands.
+Or use npm scripts: `npm run dev` (local), `npm run register` (env-file), `npm run register:dev` (no env-file).
 
 ### 6. Connect Discord to your worker
 
-1. Go to your Discord app's **General Information** page
-2. Set **Interactions Endpoint URL** to `https://pi-bot.<your-cloudflare-subdomain>.workers.dev`
-3. Save
-
-That's it. The bot is live.
+Discord app → **General Information** → set **Interactions Endpoint URL** to `https://pi-bot.<your-subdomain>.workers.dev` → Save.
 
 ---
 
-If you only want to deploy or register separately:
-```bash
-./run.sh deploy     # deploy the worker
-./run.sh register   # register slash commands only
-```
-
-Or use npm scripts directly:
-```bash
-npm run dev          # local dev with wrangler
-npm run register     # register commands (loads secrets/.env)
-npm run register:dev # register commands without node --env-file
-```
-
-## Customization
-
-### Change bot personality (`src/prompts.ts`)
-
-`SYSTEM_PROMPT` controls how the bot talks. Edit it to give the bot a persona:
-
-- Change the name and owner
-- Set the tone (formal, casual, funny)
-- Change the audience level (beginner → expert)
-- Add rules about what topics to allow or refuse
-
-`SNIPPET_PROMPT` controls how code snippets are generated. It sets:
-- Output format (code block + explanation)
-- Max 30 lines per snippet
-- No placeholders or TODOs. Every line must run
-- Must explain like the reader is a beginner
-
-### Connect a different AI provider (`wrangler.toml`)
-
-Open `wrangler.toml` and change the `[vars]` section:
+## Full `wrangler.toml`
 
 ```toml
-[vars]
-AI_BASE_URL = "https://api.openai.com/v1"
-AI_MODEL = "gpt-4o-mini"
-AI_INPUT_COST_PER_M = "0.15"
-AI_OUTPUT_COST_PER_M = "0.60"
-AI_REASONING_ENABLED = "off"
-AI_REASONING_EFFORT = "medium"
+name = "pi-bot"
+main = "src/index.ts"
+compatibility_date = "2025-07-01"
 
+[vars]
+# AI provider
+AI_BASE_URL = "https://api.deepseek.com"
+AI_MODEL = "deepseek-v4-flash"
+AI_API_KEY = ""                          # set via secrets/.env instead
+AI_INPUT_COST_PER_M = "0.14"             # cost tracking
+AI_OUTPUT_COST_PER_M = "0.28"
+AI_REASONING_ENABLED = "off"             # "on" for o-series, R1, etc.
+AI_REASONING_EFFORT = "medium"           # low | medium | high
+
+# Runtime tuning
 COOLDOWN_MS = "10000"
 COOLDOWN_CLEANUP_INTERVAL_MS = "60000"
 MIN_INPUT_CHARS = "4"
@@ -121,76 +88,65 @@ API_RETRIES = "1"
 RETRY_DELAY_MS = "1000"
 ```
 
-No code changes needed for any OpenAI-compatible provider. Just change the values and put your key in `secrets/.env` as `AI_API_KEY`.
+### Vars reference
 
-### Cost tracking
+| Var | Default | Description |
+|-----|---------|-------------|
+| `AI_BASE_URL` | — | OpenAI-compatible API base URL |
+| `AI_MODEL` | — | Model name (e.g. `gpt-4o-mini`, `deepseek-chat`) |
+| `AI_API_KEY` | — | **Set in `secrets/.env`, not here** |
+| `AI_INPUT_COST_PER_M` | — | Per-million input tokens cost (USD), for footer stats. Unset = token count only |
+| `AI_OUTPUT_COST_PER_M` | — | Per-million output tokens cost (USD). Unset = token count only |
+| `AI_REASONING_ENABLED` | `off` | `"on"` enables chain-of-thought reasoning (o-series, DeepSeek R1, etc.) |
+| `AI_REASONING_EFFORT` | `medium` | `low` / `medium` / `high` — how much the model thinks |
+| `COOLDOWN_MS` | `10000` | Wait (ms) between commands per user |
+| `COOLDOWN_CLEANUP_INTERVAL_MS` | `60000` | How often stale cooldown entries are evicted |
+| `MIN_INPUT_CHARS` | `4` | Minimum question length |
+| `MAX_INPUT_CHARS` | `800` | Maximum question length |
+| `API_TIMEOUT_MS` | `25000` | API request timeout |
+| `API_RETRIES` | `1` | Retry attempts on failure |
+| `RETRY_DELAY_MS` | `1000` | Delay (ms) between retries |
+| `temperature` | `0` (snippet) / `0.1` (ask) | Set in code (`src/index.ts`), not in toml |
 
-The bot shows a token usage footer on every response. To get accurate cost display, set `AI_INPUT_COST_PER_M` and `AI_OUTPUT_COST_PER_M` in `wrangler.toml` to your provider's per-million-token prices in USD. If these are unset or invalid, it falls back to showing just the token count.
+---
 
-### Reasoning / thinking models
+## Customization
 
-For models that support chain-of-thought reasoning (e.g. OpenAI o-series, DeepSeek R1), set `AI_REASONING_ENABLED = "true"` in `wrangler.toml`. The `AI_REASONING_EFFORT` value (`low` / `medium` / `high`) controls how much thinking the model does.
+### Personality (`src/prompts.ts`)
 
-### Supported languages for snippets
+Edit `SYSTEM_PROMPT` (tone, audience level, rules) and `SNIPPET_PROMPT` (output format, max 30 lines, no placeholders).
 
-The `/snippet` command only allows these 9 languages:
+### Languages (`src/commands.ts`)
 
-`C`, `C++`, `C#`, `Rust`, `Java`, `JavaScript`, `Python`, `Bash`, `Nix`
+Supported: `C`, `C++`, `C#`, `Rust`, `Java`, `JavaScript`, `Python`, `Bash`, `Nix`. Edit `LANGUAGES` array, re-run `./run.sh register`.
 
-This is intentional. Fewer languages means:
-- **Better syntax highlighting.** Clean formatting for every output.
-- **Deeper model knowledge.** The model has more training data per language, so code is more accurate and hallucinations are lower.
-- **Higher quality.** Each language gets tested and tuned. Adding random languages would make the bot less reliable.
+### Full code rejection (`src/index.ts`)
 
-To add or remove languages, edit `LANGUAGES` in `src/commands.ts` (the single source of truth). After changing, run `./run.sh register` to update the Discord commands.
+`FULL_CODE_PATTERNS` regexes reject "full app", "production code", etc. Remove or edit to allow full requests.
 
-### Why snippets refuse full code requests
+### Landing page (`docs/site.ts`)
 
-The bot uses **`FULL_CODE_PATTERNS`** in `src/index.ts` to detect phrases like "full app", "production code", "complete project" and rejects them.
+Edit the HTML template literal for the worker root URL page.
 
-This is intentional:
-- **Keep it a reference tool.** The bot teaches concepts and patterns, not copy-paste solutions.
-- **Ethical.** Blindly using AI-generated code without understanding it is bad practice.
+### Unlimited output
 
-You can remove or change `FULL_CODE_PATTERNS` if you want to allow full code requests.
+No `max_tokens` set. Add it to the request body in `callAPI()` inside `src/index.ts` if you want a cap.
 
-### Output is unlimited
-
-There is no output token limit. The model can generate as long as it wants. Only input has a character limit (`MAX_INPUT_CHARS`).
-
-If you want to cap output length, add `max_tokens` to the request body in `callAPI()` inside `src/index.ts`.
-
-### Other settings in `src/index.ts`
-
-| Setting | Default | What it does |
-|---------|---------|-------------|
-| `MAX_INPUT_CHARS` | 800 | Max characters per question |
-| `MIN_INPUT_CHARS` | 4 | Min characters per question |
-| `COOLDOWN_MS` | 10,000 | Wait (ms) between requests per user |
-| `COOLDOWN_CLEANUP_INTERVAL_MS` | 60,000 | How often stale cooldown entries are evicted |
-| `API_TIMEOUT_MS` | 25,000 | Max wait for the API response |
-| `API_RETRIES` | 1 | Retry attempts on failure |
-| `RETRY_DELAY_MS` | 1,000 | Delay (ms) between retry attempts |
-| `temperature` | 0 (snippet) / 0.1 (ask) | Lower = more predictable, higher = more creative |
-
-### Edit the landing page (`docs/site.ts`)
-
-The page served at the worker URL is a single HTML string in `docs/site.ts`. Edit the template literal to change the title, description, privacy policy, or terms.
+---
 
 ## Project structure
 
 ```
-├── docs/site.ts              # Landing page (edit the HTML here)
-├── secrets/                  # Your secrets (gitignored)
-│   └── .env
+├── docs/site.ts              # Landing page HTML
+├── secrets/.env              # Your secrets (gitignored)
 ├── scripts/
-│   └── register-commands.ts  # Command registration script
+│   └── register-commands.ts  # Discord command registration
 ├── src/
-│   ├── commands.ts           # Command definitions and language list
-│   ├── index.ts              # Main bot code (worker)
-│   └── prompts.ts            # AI instructions
-├── run.sh                    # Deploy and register helper
-├── wrangler.toml             # Worker config and non-secret vars
+│   ├── commands.ts           # Command defs + language list
+│   ├── index.ts              # Main worker code
+│   └── prompts.ts            # AI system prompts
+├── run.sh                    # Deploy & register helper
+├── wrangler.toml             # Worker config + non-secret vars
 └── package.json
 ```
 
