@@ -12,12 +12,6 @@ A Discord bot that answers questions and generates code snippets. Uses DeepSeek 
 
 ## Setup
 
-### What You Need
-
-1. A **Discord Application** so Discord knows your bot exists.
-2. A **Cloudflare account** with Workers enabled. The free plan works.
-3. An **AI API key** so the bot can answer. This costs money. A couple of dollars lasts hundreds of requests. DeepSeek, OpenAI, Groq, Together AI all work.
-
 ### Steps
 
 1. **Fork or clone this repo.**
