@@ -33,23 +33,23 @@ npm install
 
 ### 4. Fill in secrets
 
-Edit the files in `secrets/`:
+Edit `secrets/.env`:
 
-**`secrets/.env`**
 ```
+# Discord
 DISCORD_APP_ID=<from step 2>
 DISCORD_BOT_TOKEN=<from step 2>
-GUILD_ID=<your Discord server ID> (optional, for instant registration)
-CLOUDFLARE_API_TOKEN=<from step 3>
-```
-
-**`secrets/.dev.vars`**
-```
 DISCORD_PUBLIC_KEY=<from step 2>
-DEEPSEEK_KEY=<from step 3>
+GUILD_ID=<your Discord server ID> (optional, for instant registration)
+
+# Cloudflare
+CLOUDFLARE_API_TOKEN=<from step 3>
+
+# AI provider
+AI_API_KEY=<from step 3>
 ```
 
-> The env var names (`DEEPSEEK_KEY`, `DEEPSEEK_BASE_URL`, `DEEPSEEK_MODEL`) are just names. You can point them at any provider by changing `wrangler.toml` (see below).
+Non-secret config (model, base URL, cost tracking, reasoning settings) lives in `wrangler.toml` under `[vars]` — no need to touch `.env` for those.
 
 ### 5. Deploy
 
@@ -75,6 +75,13 @@ If you only want to deploy or register separately:
 ./run.sh register   # register slash commands only
 ```
 
+Or use npm scripts directly:
+```bash
+npm run dev          # local dev with wrangler
+npm run register     # register commands (loads secrets/.env)
+npm run register:dev # register commands without node --env-file
+```
+
 ## Customization
 
 ### Change bot personality (`src/prompts.ts`)
@@ -94,25 +101,27 @@ If you only want to deploy or register separately:
 
 ### Connect a different AI provider (`wrangler.toml`)
 
-Open `wrangler.toml` and change the `[vars]` section to match your provider:
+Open `wrangler.toml` and change the `[vars]` section:
 
 ```toml
 [vars]
-# Deepseek
-DEEPSEEK_BASE_URL = "https://api.openai.com"
-DEEPSEEK_MODEL = "gpt-4o-mini"
-
-# Claude
-# CLAUDE_BASE_URL = "https://api.anthropic.com"
-# CLAUDE_MODEL = "claude-sonnet-4-20250514"
-# Note: Claude uses a different API format. Needs code changes in callAPI().
-
-# OpenRouter
-# OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-# OPENROUTER_MODEL = "openai/gpt-4o-mini"
+AI_BASE_URL = "https://api.openai.com/v1"
+AI_MODEL = "gpt-4o-mini"
+AI_INPUT_COST_PER_M = "0.15"
+AI_OUTPUT_COST_PER_M = "0.60"
+AI_REASONING_ENABLED = "off"
+AI_REASONING_EFFORT = "medium"
 ```
 
-No code changes needed for OpenAI compatible providers. Just change the values in `wrangler.toml` and put your key in `secrets/.dev.vars` as `DEEPSEEK_KEY`.
+No code changes needed for any OpenAI-compatible provider. Just change the values and put your key in `secrets/.env` as `AI_API_KEY`.
+
+### Cost tracking
+
+The bot shows a token usage footer on every response. To get accurate cost display, set `AI_INPUT_COST_PER_M` and `AI_OUTPUT_COST_PER_M` in `wrangler.toml` to your provider's per-million-token prices in USD. If these are unset or invalid, it falls back to showing just the token count.
+
+### Reasoning / thinking models
+
+For models that support chain-of-thought reasoning (e.g. OpenAI o-series, DeepSeek R1), set `AI_REASONING_ENABLED = "true"` in `wrangler.toml`. The `AI_REASONING_EFFORT` value (`low` / `medium` / `high`) controls how much thinking the model does.
 
 ### Supported languages for snippets
 
@@ -125,7 +134,7 @@ This is intentional. Fewer languages means:
 - **Deeper model knowledge.** The model has more training data per language, so code is more accurate and hallucinations are lower.
 - **Higher quality.** Each language gets tested and tuned. Adding random languages would make the bot less reliable.
 
-To add or remove languages, edit `LANGUAGE_CHOICES` in both `src/index.ts` and `src/register-commands.ts`. The Discord dropdown and the server-side validation must stay in sync. After changing, run `./run.sh register` to update the Discord commands.
+To add or remove languages, edit `LANGUAGES` in `src/commands.ts` (the single source of truth). After changing, run `./run.sh register` to update the Discord commands.
 
 ### Why snippets refuse full code requests
 
@@ -163,14 +172,15 @@ The page served at the worker URL is a single HTML string in `docs/site.ts`. Edi
 ```
 ├── docs/site.ts              # Landing page (edit the HTML here)
 ├── secrets/                  # Your secrets (gitignored)
-│   ├── .env
-│   └── .dev.vars
-├── src/
-│   ├── index.ts              # Main bot code
-│   ├── prompts.ts            # AI instructions
+│   └── .env
+├── scripts/
 │   └── register-commands.ts  # Command registration script
+├── src/
+│   ├── commands.ts           # Command definitions and language list
+│   ├── index.ts              # Main bot code (worker)
+│   └── prompts.ts            # AI instructions
 ├── run.sh                    # Deploy and register helper
-├── wrangler.toml             # Worker config
+├── wrangler.toml             # Worker config and non-secret vars
 └── package.json
 ```
 
