@@ -30,26 +30,26 @@ A Discord bot that answers questions and generates code snippets. Uses DeepSeek 
 
 2. **Create a Discord application.**
 
-    Go to the [Discord Developer Portal](https://discord.com/developers/applications).
-    Click New Application and name it.
-    Go to Bot, click Add Bot, then Reset Token. Copy the token.
-    Go to General Information. Copy the Application ID and Public Key.
+    - Go to the [Discord Developer Portal](https://discord.com/developers/applications).
+    - Click New Application and name it.
+    - Go to Bot, click Add Bot, then Reset Token. Copy the token.
+    - Go to General Information. Copy the Application ID and Public Key.
 
     To invite the bot:
-    Go to OAuth2 then URL Generator.
-    Select the bot scope.
-    Select Send Messages and Use Slash Commands.
-    Open the generated URL and follow the prompts.
+    - Go to OAuth2 then URL Generator.
+    - Select the bot scope.
+    - Select Send Messages and Use Slash Commands.
+    - Open the generated URL and follow the prompts.
 
 3. **Set up Cloudflare Workers.**
 
-    Go to [Cloudflare Dashboard](https://dash.cloudflare.com/).
-    Go to Workers & Pages, click Create Application, then Create Worker. Name it and deploy.
-    Go to My Profile then API Tokens. Create a token using the Edit Cloudflare Workers template. Copy the token.
+    - Go to [Cloudflare Dashboard](https://dash.cloudflare.com/).
+    - Go to Workers & Pages, click Create Application, then Create Worker. Name it and deploy.
+    - Go to My Profile then API Tokens. Create a token using the Edit Cloudflare Workers template. Copy the token.
 
 4. **Get an AI API key.**
 
-    Get an API key from any OpenAI compatible provider (DeepSeek, OpenAI, Groq, Together AI, etc). Add credit to your account.
+    - Get an API key from any OpenAI compatible provider (DeepSeek, OpenAI, Groq, Together AI, etc).
 
 5. **Configure secrets.**
 
@@ -64,7 +64,8 @@ A Discord bot that answers questions and generates code snippets. Uses DeepSeek 
     AI_API_KEY =             # api key from your ai provider
     ```
 
-    To get your server ID: enable Developer Mode in Discord settings under Advanced, right click your server, click Copy ID.
+    - Enable Developer Mode in Discord settings under Advanced.
+    - Right click your server name and click Copy ID to find your server ID.
 
 6. **Log in and register commands.**
 
@@ -81,14 +82,14 @@ A Discord bot that answers questions and generates code snippets. Uses DeepSeek 
 
 8. **Set the interactions endpoint.**
 
-    In the Discord Developer Portal, go to your application, then General Information.
-    Set the Interactions Endpoint URL to `https://your-worker-name.your-subdomain.workers.dev`.
-    Replace the worker name with yours. Click Save Changes.
+    - Go to the Discord Developer Portal, open your application, then General Information.
+    - Set the Interactions Endpoint URL to `https://your-worker-name.your-subdomain.workers.dev`.
+    - Replace the worker name with yours. Click Save Changes.
 
 9. **Test.**
 
-    Go to your Discord server and type `/ask what is a variable in programming`.
-    Check Cloudflare Worker logs if it does not respond.
+    - Go to your Discord server and type `/ask what is a variable in programming`.
+    - Check Cloudflare Worker logs if it does not respond.
 
 ---
 
@@ -144,11 +145,11 @@ export const SNIPPET_PROMPT = [
 ].join("\n");
 ```
 
-To change the persona, edit the lines inside the `SYSTEM_PROMPT` array. Each string is one instruction. Remove or replace them to match the tone you want.
+To change the persona:
 
-For example, to make the bot more casual, change the first few lines to something like "You are a chill coding buddy who keeps it simple." To change the audience from beginners to experts, remove the beginner instruction and add "Assume the user knows programming fundamentals."
-
-After editing, save the file and run `npm run deploy` to push the updated prompts to your worker.
+- Edit the lines inside the `SYSTEM_PROMPT` array. Each string is one instruction.
+- Remove or replace them to match the tone you want.
+- Save the file and run `npm run deploy` to push the updated prompts.
 
 ---
 
@@ -175,13 +176,16 @@ pi-bot/
     └── prompts.ts        System prompts sent to the AI
 ```
 
-**src/index.ts** verifies Discord signatures, parses commands, checks cooldowns, calls the AI API, retries on failure, and sends responses. **src/commands.ts** defines `/ask` (freeform question) and `/snippet` (description plus language dropdown). Supported languages: C, C++, C Sharp, Rust, Java, JavaScript, Python, Bash, Nix. **src/prompts.ts** tells the AI to explain simply for beginners and keeps snippets under 30 lines. **docs/site.ts** is the HTML page for the root URL. **scripts/register-commands.ts** is run once after deploying to register commands with Discord.
+- **src/index.ts** verifies Discord signatures, parses commands, checks cooldowns, calls the AI API, retries on failure, and sends responses.
+- **src/commands.ts** defines `/ask` and `/snippet` commands. Supported languages: C, C++, C Sharp, Rust, Java, JavaScript, Python, Bash, Nix.
+- **src/prompts.ts** tells the AI to explain simply for beginners and keeps snippets under 30 lines.
+- **docs/site.ts** is the HTML page for the root URL.
+- **scripts/register-commands.ts** is run once after deploying to register commands with Discord.
 
 ---
 
 ## Features
 
-- **Two slash commands.** `/ask` for questions and `/snippet` for short code examples with language autocomplete.
 - **Beginner friendly responses.** The AI explains simply, defines terms, and avoids assuming prior knowledge.
 - **Per user cooldown.** Prevents spam and keeps API costs predictable. Duration is configurable in `wrangler.toml`.
 - **Automatic retries.** Retries the AI API call on failure. Shows a polite error if all attempts fail.
