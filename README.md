@@ -111,6 +111,14 @@ AI_INPUT_COST_PER_M = "0.15"
 AI_OUTPUT_COST_PER_M = "0.60"
 AI_REASONING_ENABLED = "off"
 AI_REASONING_EFFORT = "medium"
+
+COOLDOWN_MS = "10000"
+COOLDOWN_CLEANUP_INTERVAL_MS = "60000"
+MIN_INPUT_CHARS = "4"
+MAX_INPUT_CHARS = "800"
+API_TIMEOUT_MS = "25000"
+API_RETRIES = "1"
+RETRY_DELAY_MS = "1000"
 ```
 
 No code changes needed for any OpenAI-compatible provider. Just change the values and put your key in `secrets/.env` as `AI_API_KEY`.
@@ -158,9 +166,11 @@ If you want to cap output length, add `max_tokens` to the request body in `callA
 |---------|---------|-------------|
 | `MAX_INPUT_CHARS` | 800 | Max characters per question |
 | `MIN_INPUT_CHARS` | 4 | Min characters per question |
-| `COOLDOWN_MS` | 10,000 | Wait time (ms) between requests per user |
+| `COOLDOWN_MS` | 10,000 | Wait (ms) between requests per user |
+| `COOLDOWN_CLEANUP_INTERVAL_MS` | 60,000 | How often stale cooldown entries are evicted |
 | `API_TIMEOUT_MS` | 25,000 | Max wait for the API response |
 | `API_RETRIES` | 1 | Retry attempts on failure |
+| `RETRY_DELAY_MS` | 1,000 | Delay (ms) between retry attempts |
 | `temperature` | 0 (snippet) / 0.1 (ask) | Lower = more predictable, higher = more creative |
 
 ### Edit the landing page (`docs/site.ts`)
