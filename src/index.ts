@@ -149,7 +149,7 @@ export default {
 			cooldowns.set(uid, Date.now() + COOLDOWN_MS);
 
 			const { application_id, token } = interaction;
-			ctx.waitUntil(handleDeepSeek(question, application_id, token, env, name));
+			ctx.waitUntil(handleResponse(question, application_id, token, env, name));
 
 			return Response.json({ type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE });
 		}
@@ -158,7 +158,7 @@ export default {
 	},
 };
 
-async function callDeepSeek(question: string, env: Env, mode: string): Promise<{ content: string; usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number } }> {
+async function callAPI(question: string, env: Env, mode: string): Promise<{ content: string; usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number } }> {
 	const system = mode === "snippet" ? SNIPPET_PROMPT : SYSTEM_PROMPT;
 
 	const res = await fetch(`${env.DEEPSEEK_BASE_URL}/v1/chat/completions`, {
@@ -178,7 +178,7 @@ async function callDeepSeek(question: string, env: Env, mode: string): Promise<{
 
 	if (!res.ok) {
 		const text = await res.text().catch(() => "unknown error");
-		throw new Error(`DeepSeek ${res.status}: ${text}`);
+		throw new Error(`API ${res.status}: ${text}`);
 	}
 
 	const data = await res.json() as {
@@ -186,17 +186,17 @@ async function callDeepSeek(question: string, env: Env, mode: string): Promise<{
 		usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
 	};
 
-	if (!data.choices?.length) throw new Error("Empty response from DeepSeek");
+	if (!data.choices?.length) throw new Error("Empty response from API");
 
 	return { content: data.choices[0].message.content.trim(), usage: data.usage };
 }
 
-async function handleDeepSeek(question: string, appId: string, token: string, env: Env, mode: string): Promise<void> {
+async function handleResponse(question: string, appId: string, token: string, env: Env, mode: string): Promise<void> {
 	let lastError: string | null = null;
 
 	for (let attempt = 0; attempt <= API_RETRIES; attempt++) {
 		try {
-			const result = await callDeepSeek(question, env, mode);
+			const result = await callAPI(question, env, mode);
 
 			let answer = fixMarkdown(result.content);
 			if (!answer) answer = "I don't have a good answer for that. Try being more specific.";
@@ -212,7 +212,7 @@ async function handleDeepSeek(question: string, appId: string, token: string, en
 			return;
 		} catch (err) {
 			lastError = err instanceof Error ? err.message : "Unknown error";
-			console.error(`DeepSeek attempt ${attempt + 1}/${API_RETRIES + 1} failed:`, lastError);
+			console.error(`API attempt ${attempt + 1}/${API_RETRIES + 1} failed:`, lastError);
 
 			if (attempt < API_RETRIES) {
 				// Brief pause before retry

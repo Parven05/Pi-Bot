@@ -94,34 +94,25 @@ If you only want to deploy or register separately:
 
 ### Connect a different AI provider (`wrangler.toml`)
 
-Open `wrangler.toml` and change the `[vars]` section to match your provider. The env var names (`DEEPSEEK_*`) stay the same, just point them at your provider:
+Open `wrangler.toml` and change the `[vars]` section to match your provider:
 
 ```toml
 [vars]
-# DeepSeek
-DEEPSEEK_BASE_URL = "https://api.deepseek.com"
-DEEPSEEK_MODEL = "deepseek-chat"
+# ChatGPT (OpenAI)
+DEEPSEEK_BASE_URL = "https://api.openai.com"
+DEEPSEEK_MODEL = "gpt-4o-mini"
 
-# OpenAI
-# DEEPSEEK_BASE_URL = "https://api.openai.com"
-# DEEPSEEK_MODEL = "gpt-4o-mini"
-
-# Groq
-# DEEPSEEK_BASE_URL = "https://api.groq.com/openai/v1"
-# DEEPSEEK_MODEL = "llama-3.3-70b-versatile"
+# Claude (Anthropic)
+# DEEPSEEK_BASE_URL = "https://api.anthropic.com"
+# DEEPSEEK_MODEL = "claude-sonnet-4-20250514"
+# Note: Claude uses a different API format. Needs code changes in callAPI().
 
 # OpenRouter
 # DEEPSEEK_BASE_URL = "https://openrouter.ai/api/v1"
 # DEEPSEEK_MODEL = "openai/gpt-4o-mini"
-
-# Together
-# DEEPSEEK_BASE_URL = "https://api.together.xyz/v1"
-# DEEPSEEK_MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1"
 ```
 
-No code changes needed. The bot reads these from the environment at runtime.
-
-> Claude (Anthropic) is not OpenAI compatible. This bot will not work with it without code changes.
+No code changes needed for OpenAI compatible providers. Just change the values in `wrangler.toml` and put your key in `secrets/.dev.vars` as `DEEPSEEK_KEY`.
 
 ### Why snippets refuse full code requests
 
@@ -144,7 +135,7 @@ You can remove or change `FULL_CODE_PATTERNS` if you want to allow full code req
 | `MAX_INPUT_CHARS` | 800 | Max characters per question |
 | `MIN_INPUT_CHARS` | 4 | Min characters per question |
 | `COOLDOWN_MS` | 10,000 | Wait time (ms) between requests per user |
-| `API_TIMEOUT_MS` | 25,000 | Max wait for DeepSeek response |
+| `API_TIMEOUT_MS` | 25,000 | Max wait for the API response |
 | `API_RETRIES` | 1 | Retry attempts on failure |
 | `temperature` | 0 (snippet) / 0.1 (ask) | Lower = more predictable, higher = more creative |
 
