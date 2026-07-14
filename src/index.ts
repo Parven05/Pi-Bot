@@ -17,7 +17,7 @@ let lastCleanup = Date.now();
 const INPUT_COST_PER_M = 0.14;
 const OUTPUT_COST_PER_M = 0.28;
 
-// Token-saving limits
+// Input Token Saving limits
 const MAX_INPUT_CHARS = 800;
 const MIN_INPUT_CHARS = 4;
 
@@ -171,7 +171,6 @@ async function callAPI(question: string, env: Env, mode: string): Promise<{ cont
 				{ role: "user", content: question },
 			],
 			temperature: mode === "snippet" ? 0 : 0.1,
-			max_tokens: mode === "snippet" ? 600 : 1024,
 		}),
 		signal: AbortSignal.timeout(API_TIMEOUT_MS),
 	});

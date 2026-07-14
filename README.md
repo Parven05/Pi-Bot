@@ -129,17 +129,19 @@ To add or remove languages, edit `LANGUAGE_CHOICES` in both `src/index.ts` and `
 
 ### Why snippets refuse full code requests
 
-The bot uses two things to keep snippets short:
-
-1. **`FULL_CODE_PATTERNS`** in `src/index.ts`. Detects phrases like "full app", "production code", "complete project" and rejects them.
-2. **`max_tokens: 600`** for snippets vs 1024 for questions. Limits output length.
+The bot uses **`FULL_CODE_PATTERNS`** in `src/index.ts` to detect phrases like "full app", "production code", "complete project" and rejects them.
 
 This is intentional:
-- **Save tokens.** Short responses cost less.
 - **Keep it a reference tool.** The bot teaches concepts and patterns, not copy-paste solutions.
 - **Ethical.** Blindly using AI-generated code without understanding it is bad practice.
 
 You can remove or change `FULL_CODE_PATTERNS` if you want to allow full code requests.
+
+### Output is unlimited
+
+There is no output token limit. The model can generate as long as it wants. Only input has a character limit (`MAX_INPUT_CHARS`).
+
+If you want to cap output length, add `max_tokens` to the request body in `callAPI()` inside `src/index.ts`.
 
 ### Other settings in `src/index.ts`
 
