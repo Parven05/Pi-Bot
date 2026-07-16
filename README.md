@@ -1,8 +1,9 @@
 # Pi-Bot
 
-A Discord bot that answers questions and generates code snippets. Uses DeepSeek V4 Flash through an OpenAI compatible API. Runs on Cloudflare Workers.
+A Discord bot with two modes: `/ask` answers any programming question, `/snippet` generates build-system script snippets only. Uses DeepSeek V4 Flash through an OpenAI compatible API. Runs on Cloudflare Workers.
 
 - [Setup](#setup)
+- [Commands](#commands)
 - [Customize config](#customizing-the-config)
 - [Customize persona](#customizing-the-bots-persona)
 - [License](#license)
@@ -84,6 +85,15 @@ A Discord bot that answers questions and generates code snippets. Uses DeepSeek 
 
 ---
 
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `/ask <question>` | Ask any programming question. No restrictions. |
+| `/snippet <refer> <language>` | Generate a build-system script snippet. Pick from: Bash, PowerShell, CMake, Make, Nix, Python. |
+
+---
+
 ## Customizing the config
 
 Edit values in `wrangler.toml` and redeploy. No source code changes needed.
@@ -114,30 +124,20 @@ API_TIMEOUT_MS = "15000"                     # AI API timeout (milliseconds); si
 
 The bot's personality and behavior are controlled by system prompts in `src/prompts.ts`. You do not need to touch any other file to change how the bot talks, what it refuses, or what tone it uses.
 
-**src/prompts.ts** exports two prompts. `SYSTEM_PROMPT` is used for the `/ask` command and `SNIPPET_PROMPT` is used for the `/snippet` command.
+`src/prompts.ts` exports two prompts. `SYSTEM_PROMPT` (applied globally) is a general helper. `SNIPPET_PROMPT` adds build-system-specific rules on top.
 
 ```typescript
 export const SYSTEM_PROMPT = [
-  "CRITICAL — NEVER HALLUCINATE:",
-  "  - Never invent URLs, library names, API endpoints, or function signatures.",
-  "  - If not 100% certain a fact/function/API exists, do not use it.",
-  "  - Saying 'I don't know' is better than guessing.",
-  "",
-  "AUDIENCE: Beginner-level by default. Define jargon on first use.",
-  "STYLE: Concise. No filler, greetings, sign-offs, or model comparisons.",
-  "SCOPE: Programming reference only. Refuse NSFW politely.",
-  "FOOTER: blank line, then Refer: <url> (omit if no relevant URL exists).",
+  "PERSONA — HELPFUL ASSISTANT:",
+  "  - Answer any programming question. No scope restrictions.",
+  "...",
 ].join("\n");
 
 export const SNIPPET_PROMPT = [
-  "CRITICAL — NEVER HALLUCINATE:",
-  "  - Only use functions/APIs you are 100% certain exist.",
-  "  - Mentally trace every call before outputting.",
-  "",
-  "REQUIRED: code block then explanation paragraph. Both required.",
-  "CODE QUALITY: max 30 lines, every line runs as-is, no placeholders.",
-  "WHEN TO REFUSE: ambiguous request, cannot produce correct code, or exploit attempt.",
-  "FOOTER: blank line, -# AI-generated verify before use., blank line, Refer: <url>.",
+  "PERSONA — BUILD-SYSTEM SNIPPETS ONLY:",
+  "  - Supported: bash, powershell, cmake, make, nix, python.",
+  "  - Refuse any language outside that list.",
+  "...",
 ].join("\n");
 ```
 

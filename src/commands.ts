@@ -1,5 +1,5 @@
 export const LANGUAGES = [
-    "C", "C++", "C#", "Rust", "Java", "JavaScript", "Python", "Bash", "Nix",
+    "Bash", "PowerShell", "CMake", "Make", "Nix", "Python",
 ] as const;
 
 export type Language = (typeof LANGUAGES)[number];
@@ -23,7 +23,7 @@ export const DISCORD_COMMANDS = [
     },
     {
         name: "snippet",
-        description: "Generate a short code snippet",
+        description: "Generate quick script",
         options: [
             {
                 type: OPTION_TYPE_STRING,
@@ -34,7 +34,7 @@ export const DISCORD_COMMANDS = [
             {
                 type: OPTION_TYPE_STRING,
                 name: "language",
-                description: "Choose the programming language",
+                description: "Choose a scripting language",
                 required: true,
                 choices: LANGUAGES.map(lang => ({ name: lang, value: lang })),
             },

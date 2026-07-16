@@ -5,51 +5,44 @@ export const HTML = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pi-Bot</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;line-height:1.8;color:#c9d1d9;background:#0d1117}
-.wrap{max-width:640px;margin:0 auto;padding:2.5rem 1.5rem 3rem}
-h1{font-size:1.6rem;font-weight:700;color:#f0f6fc}
-.sub{color:#8b949e;font-size:.85rem;margin-bottom:1.5rem}
-h2{font-size:1rem;font-weight:600;color:#f0f6fc;margin:1.5rem 0 .4rem}
-p{color:#8b949e;margin-bottom:.5rem}
-a{color:#58a6ff;text-decoration:none}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.7;color:#333;background:#fff;max-width:620px;margin:0 auto;padding:3rem 1.5rem}
+h1{font-size:1.5rem;font-weight:600;margin-bottom:.2rem}
+.sub{color:#777;margin-bottom:.5rem}
+h2{font-size:1rem;font-weight:600;margin:2rem 0 .3rem}
+p{color:#555;margin-bottom:.4rem}
+a{color:#2563eb;text-decoration:none}
 a:hover{text-decoration:underline}
-code{background:#161b22;padding:.1em .4em;border-radius:4px;font-size:.85em;color:#e6edf3}
-.tag{display:inline-block;background:#21262d;color:#e6edf3;font-size:.7rem;font-weight:500;padding:.15rem .5rem;border-radius:4px;border:1px solid #30363d;margin-right:.25rem}
-.card{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:.9rem;margin:.6rem 0}
-.card p:last-child{margin-bottom:0}
-hr{border:none;border-top:1px solid #21262d;margin:1.5rem 0}
-.foot{font-size:.8rem;color:#484f58}
+code{background:#f5f5f5;padding:.12em .4em;border-radius:3px;font-size:.85em;color:#222}
+.tag{display:inline-block;background:#f0f0f0;color:#444;font-size:.75rem;padding:.1rem .45rem;border-radius:3px;margin-right:.2rem}
+hr{border:none;border-top:1px solid #eee;margin:2rem 0}
+.foot{font-size:.8rem;color:#999}
 </style>
 </head>
 <body>
-<div class="wrap">
 
 <h1>Pi-Bot</h1>
-<p class="sub"><span class="tag">/ask</span><span class="tag">/snippet</span> on ParvenPi Discord</p>
-<p>A Discord bot for the ParvenPi server. Answers questions and generates quick code examples through DeepSeek V4 Flash, hosted on Cloudflare Workers.</p>
+<p>An Useful Discord Bot that Runs on Cloudflare Workers using DeepSeek V4 Flash via an OpenAI-compatible API.</p>
+
 <h2>Commands</h2>
-<div class="card">
-<p><strong style="color:#f0f6fc;">/ask</strong> <code>&lt;question&gt;</code> Ask me anything.</p>
-<p style="margin-bottom:0;"><strong style="color:#f0f6fc;">/snippet</strong> <code>&lt;refer&gt;</code> <code>&lt;language&gt;</code> Quick example or boilerplate for a specific concept. Pick a language from the dropdown. Full code requests are rejected.</p>
-</div>
-<h2>Privacy Policy</h2>
-<div class="card">
-<p>Pi-Bot does not store, log, or share any user data. Your question is sent to the DeepSeek API solely to generate a response. No data is retained server side.</p>
-<p style="margin-bottom:0;">No cookies, trackers, or analytics are used. Discord metadata such as your user ID and command name exists transiently in memory for rate limiting and is discarded immediately after. By using this bot, you consent to ephemeral processing of your input for the sole purpose of responding.</p>
-</div>
-<h2>Terms and Conditions</h2>
-<div class="card">
-<p>Pi-Bot is provided as is, without warranty. Responses may contain errors. Always verify critical information against official sources.</p>
-<p><strong style="color:#f0f6fc;">Acceptable Use:</strong> No spam, harassment, NSFW content, or unlawful activity. Abuse may result in a block.</p>
-<p><strong style="color:#f0f6fc;">Liability:</strong> The creator is not responsible for any issues that may arise from using this bot.</p>
-<p style="margin-bottom:0;"><strong style="color:#f0f6fc;">Changes:</strong> These terms may be updated. Continued use after changes constitutes acceptance.</p>
-</div>
+<p><strong>/ask</strong> <code>&lt;question&gt;</code> Any programming question.</p>
+<p><strong>/snippet</strong> <code>&lt;refer&gt;</code> <code>&lt;language&gt;</code> Build-system snippet in Bash, PowerShell, CMake, Make, Nix, Python.</p>
+
+<h2>Setup</h2>
+<p><a href="https://github.com/Parven05/Pi-Bot">Clone the repo</a>, install deps, configure secrets, and deploy. See the <a href="https://github.com/Parven05/Pi-Bot/blob/main/README.md">README</a> for full setup instructions.</p>
+
+<h2>Configuration</h2>
+<p>Model, costs, cooldowns, and persona are configured via <code>wrangler.toml</code> and <code>src/prompts.ts</code>. No code changes needed for basic tuning.</p>
+
+<h2>Privacy</h2>
+<p>No data stored, logged, or shared. Input is sent to DeepSeek API solely to generate a response and is ephemeral. No cookies or trackers.</p>
+
+<h2>Terms</h2>
+<p>Provided as-is without warranty. No spam, harassment, or NSFW. Abuse may result in a block.</p>
+
 <hr>
 <div class="foot">
-<p>Created by <a href="https://www.parven.me">Parven</a>. Powered by DeepSeek and Cloudflare Workers.</p>
+<p><a href="https://www.parven.me">Parven</a> &middot; MIT License &middot; <a href="https://github.com/Parven05/Pi-Bot">GitHub</a></p>
 </div>
 
-</div>
 </body>
 </html>`;

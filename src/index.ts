@@ -61,12 +61,12 @@ function checkTunablesConfigured(env: Env): string | null {
 	return null;
 }
 
-const FULL_CODE_PATTERNS = [
-	/full\s*(code|program|app|implement|project)/i,
-	/production\s*(code|ready|grade)/i,
-	/complete\s*(code|program|app|implement)/i,
-	/whole\s*(code|program|project)/i,
-	/entire\s*(code|program|project)/i,
+const FULL_SCRIPT_PATTERNS = [
+	/full\s*(script|app|implement|project)/i,
+	/production\s*(script|ready|grade)/i,
+	/complete\s*(script|app|implement)/i,
+	/whole\s*(script|project)/i,
+	/entire\s*(script|project)/i,
 ];
 
 // ---- Per-user cooldown (in-memory; resets on isolate recycle) -------------
@@ -204,7 +204,7 @@ function buildSnippetQuery(opts: { name: string; value: unknown }[], env: Env): 
 	const prompt = getOption(opts, "refer");
 	const lang = getOption(opts, "language");
 
-	if (!lang.trim()) return { error: "Please choose a programming language." };
+	if (!lang.trim()) return { error: "Please choose a scripting language." };
 	if (!LANGUAGE_SET.has(lang.toLowerCase())) {
 		return { error: "Please choose a supported language from the list." };
 	}
@@ -212,11 +212,11 @@ function buildSnippetQuery(opts: { name: string; value: unknown }[], env: Env): 
 	const error = validateText(prompt, "the snippet description", env);
 	if (error) return { error };
 
-	if (FULL_CODE_PATTERNS.some(p => p.test(prompt.toLowerCase()))) {
+	if (FULL_SCRIPT_PATTERNS.some(p => p.test(prompt.toLowerCase()))) {
 		return {
 			error:
-				"I'm here to give quick examples of code usage or boilerplate, not full code. " +
-				"Using AI-generated code isn't a good practice, take the concept and write it yourself.",
+				"I'm here for short script snippets and build helpers, not full applications. " +
+				"Take the concept and write the full thing yourself.",
 		};
 	}
 
@@ -238,7 +238,7 @@ function isReasoningEnabled(env: Env): boolean {
 }
 
 async function callAPI(question: string, env: Env, mode: string): Promise<{ content: string; usage: ChatUsage }> {
-	const system = mode === "snippet" ? SNIPPET_PROMPT : SYSTEM_PROMPT;
+	const system = mode === "snippet" ? SYSTEM_PROMPT + "\n\n" + SNIPPET_PROMPT : SYSTEM_PROMPT;
 
 	const body: Record<string, unknown> = {
 		model: env.AI_MODEL,
